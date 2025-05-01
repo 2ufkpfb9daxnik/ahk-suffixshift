@@ -3,6 +3,7 @@
 ; グローバル変数
 global prevInput := ""  ; 前回の入力を保持
 global shiftKeys := "eiosf"  ; 後置シフトキー
+global escPressed := false  ; ESCが押されたかどうか
 
 ; キーマッピング
 global keyMap := Map(
@@ -261,9 +262,16 @@ outputConfirmed(kana, isSpace := false) {
 
 ; キー入力の処理
 handleInput(key) {
-    global prevInput
+    global prevInput, escPressed
 
     if key = " " {
+        ; ESC後のスペースは通常のスペースとして出力
+        if escPressed {
+            SendText(" ")
+            escPressed := false
+            return false
+        }
+
         ; スペースが押されたとき、待機中の入力があれば確定
         if prevInput && keyMap.Has(prevInput) {
             outputConfirmed(keyMap[prevInput], true)
@@ -308,6 +316,13 @@ handleInput(key) {
 
 ; キーバインディング
 #HotIf true
+    ; ESCキーの処理
+    Escape::
+    {
+        global escPressed := true
+        return false
+    }
+
     Space::handleInput(" ")
     a::handleInput("a")
     b::handleInput("b")
